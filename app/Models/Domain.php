@@ -17,7 +17,7 @@ class Domain {
     }
 
     public static function getAllCategoriesByDomain($domain) {
-        if(!is_string($domain)||trim($domain)==''){
+        if (!is_string($domain) || trim($domain) == '') {
             return array();
         }
         $redis = Redis::connection();
@@ -25,7 +25,7 @@ class Domain {
     }
 
     public static function exists($domain) {
-        if(!is_string($domain)||trim($domain)==''){
+        if (!is_string($domain) || trim($domain) == '') {
             return false;
         }
         $redis = Redis::connection();
@@ -35,42 +35,38 @@ class Domain {
     public static function add($domain) {
         $redis = Redis::connection();
 
-        if(is_array($domain)&&count($domain)>0){
-            foreach ($domain as $key=>$value){
-                if(is_array($value)){
+        if (is_array($domain) && count($domain) > 0) {
+            foreach ($domain as $key => $value) {
+                if (is_array($value)) {
                     unset($domain["$key"]);
                 }
             }
-            if(count($domain)>0){
-                $redis->sadd("domains",$domain);  
+            if (count($domain) > 0) {
+                $redis->sadd("domains", $domain);
             }
-            
-        }
-        else if(is_string($domain)&&trim($domain)!=''){
+        } else if (is_string($domain) && trim($domain) != '') {
             $redis->sadd("domains", $domain);
         }
     }
 
     public static function remove($domain) {
         $redis = Redis::connection();
-        if(is_array($domain)&&count($domain)>0){
-            foreach ($domain as $key=>$value){
-                if(is_array($value)){
+        if (is_array($domain) && count($domain) > 0) {
+            foreach ($domain as $key => $value) {
+                if (is_array($value)) {
                     unset($domain["$key"]);
                 }
             }
-            if(count($domain)>0){
-                $redis->srem("domains",$domain);  
+            if (count($domain) > 0) {
+                $redis->srem("domains", $domain);
             }
-            
-        }
-        else if(is_string($domain)&&trim($domain)!=''){
-            $redis->srem("domains",array($domain));  
+        } else if (is_string($domain) && trim($domain) != '') {
+            $redis->srem("domains", array($domain));
         }
     }
 
     public static function addCategory($domain, $category) {
-        if(!is_string($domain)||trim($domain)==''||!is_string($category)||trim($category)==''){
+        if (!is_string($domain) || trim($domain) == '' || !is_string($category) || trim($category) == '') {
             return;
         }
         $redis = Redis::connection();
@@ -78,7 +74,7 @@ class Domain {
     }
 
     public static function removeCategory($domain, $category) {
-        if(!is_string($domain)||trim($domain)==''||!is_string($category)||trim($category)==''){
+        if (!is_string($domain) || trim($domain) == '' || !is_string($category) || trim($category) == '') {
             return;
         }
         $redis = Redis::connection();
@@ -88,7 +84,7 @@ class Domain {
     public static function initOrReset() {
         $redis = Redis::connection();
         $redis->del("domains");
-        $redis->sadd("domains",array('qoo10.sg','lazada.sg','shopee.sg'));
+        $redis->sadd("domains", array('qoo10.sg', 'lazada.sg', 'shopee.sg'));
     }
 
 }

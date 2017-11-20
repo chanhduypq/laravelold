@@ -15,10 +15,9 @@ class User {
     public function __construct($email, $password) {
         $this->email = $email;
         $this->password = $password;
-        if(!self::existsEmail($email)){
+        if (!self::existsEmail($email)) {
             self::addUser($email, $password);
-        }
-        else{
+        } else {
             if (self::login($email, $password)) {
                 $redis = Redis::connection();
                 $this->profile = $redis->hgetall("user_account_$email");
@@ -31,9 +30,6 @@ class User {
                 }
             }
         }
-        
-
-        
     }
 
     public static function getCount() {
@@ -102,7 +98,7 @@ class User {
                 }
             }
         }
-        
+
         $this->email = $this->password = null;
         $this->products = $this->profile = array();
     }
@@ -145,7 +141,7 @@ class User {
         //không cho phép đổi email và password
         $data['email'] = $email;
         $data['password'] = $password;
-        
+
         $redis->hmset("user_account_$email", $data);
     }
 
@@ -159,24 +155,24 @@ class User {
         //không cho phép đổi email và password
         $data['email'] = $this->email;
         $data['password'] = $this->password;
-        
+
         $redis->hmset("user_account_$email", $data);
 
         foreach ($data as $key => $value) {
             $this->profile[$key] = $value;
         }
-        
+
         $this->profile['email'] = $this->email;
         $this->profile['password'] = $this->password;
     }
-    
+
     public static function updateUserPassword($email, $password, $newPassword) {
         $redis = Redis::connection();
         if (!self::login($email, $password)) {
             return;
         }
         $data['password'] = $newPassword;
-        
+
         $redis->hmset("user_account_$email", $data);
     }
 
@@ -185,7 +181,7 @@ class User {
 
         $email = $this->email;
         $data['password'] = $newPassword;
-        
+
         $redis->hmset("user_account_$email", $data);
 
         $this->profile['password'] = $newPassword;
@@ -221,7 +217,7 @@ class User {
 
         $email = $this->email;
         $redis = Redis::connection();
-        
+
         if (!$this->alreadyFollowProduct($productId, $domain)) {
             $redis->rpush("user_products_$email", $domain . "_" . $productId);
             $redis->rpush("user_products_$domain" . "_" . $email, $domain . "_" . $productId);
@@ -233,7 +229,7 @@ class User {
         $email = $this->email;
 
         $redis = Redis::connection();
-        
+
         if ($this->alreadyFollowProduct($productId, $domain)) {
             $productIds = $redis->lrange("user_products_$email", 0, -1);
             $redis->del("user_products_$email");
@@ -242,7 +238,7 @@ class User {
                     $redis->rpush("user_products_$email", $value);
                 }
             }
-            
+
             $productIds = $redis->lrange("user_products_$domain" . "_" . $email, 0, -1);
             $redis->del("user_products_$domain" . "_" . $email);
             foreach ($productIds as $value) {
@@ -250,7 +246,7 @@ class User {
                     $redis->rpush("user_products_$domain" . "_" . $email, $value);
                 }
             }
-            
+
             $products = $this->products;
             foreach ($products as $key => $value) {
                 if ($value['domain'] == $domain && $value['id'] == $productId) {
@@ -259,28 +255,26 @@ class User {
             }
             $this->products = $products;
         }
-            
-        
     }
-    
+
     public function setNotificationForProduct($productId, $domain, $price) {
-        if(!$this->alreadyFollowProduct($productId, $domain)){
+        if (!$this->alreadyFollowProduct($productId, $domain)) {
             $this->followProduct($productId, $domain);
         }
         $redis = Redis::connection();
         $email = $this->email;
         $redis->hset("user_notifications_$email", $domain . "_" . $productId, $price);
     }
-    
-    public function hasNotificationForProduct($productId, $domain, &$price=null) {
-        $product=new Product($productId,$domain);
-        
+
+    public function hasNotificationForProduct($productId, $domain, &$price = null) {
+        $product = new Product($productId, $domain);
+
         $redis = Redis::connection();
-        
+
         $email = $this->email;
-        $data=$redis->hgetall("user_notifications_$email");
-        if($product->getCurrentPrice()<=$data[$domain . "_" . $productId]){
-            $price=$product->getCurrentPrice();
+        $data = $redis->hgetall("user_notifications_$email");
+        if ($product->getCurrentPrice() <= $data[$domain . "_" . $productId]) {
+            $price = $product->getCurrentPrice();
             return true;
         }
         return false;
