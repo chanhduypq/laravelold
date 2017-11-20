@@ -264,6 +264,9 @@ class User {
     }
     
     public function setNotificationForProduct($productId, $domain, $price) {
+        if(!$this->alreadyFollowProduct($productId, $domain)){
+            $this->followProduct($productId, $domain);
+        }
         $redis = Redis::connection();
         $email = $this->email;
         $redis->hset("user_notifications_$email", $domain . "_" . $productId, $price);
